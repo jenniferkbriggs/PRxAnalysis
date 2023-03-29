@@ -33,6 +33,30 @@ for i = 1:length(out.filename)
     end
 end
 
+%%
+for k = 1:length(out.filename)
+    q = 3
+    PRx = out.quantiles(k).data(:,2:64,q);
+    percchange = []
+    for i = 1:30*63
+       try %super inefficient but gets percent change from +/- averaging or correlation window
+       percchange = [percchange (PRx(i-1)-PRx(i))/PRx(i)];
+       end
+       try
+       percchange = [percchange (PRx(i+1)-PRx(i))/PRx(i)];
+       end
+       try
+       percchange = [percchange (PRx(i+30)-PRx(i))/PRx(i)];
+       end
+       try
+       percchange = [percchange (PRx(i-30)-PRx(i))/PRx(i)];
+       end
+    end
+    percchange_all(k) = mean(abs(percchange))
+end
+
+[ranked_perc, pat_perc] = sort(percchange_all)
+
 %% 
 for i = 1:length(out.filename)
     for q = 1:5
@@ -62,26 +86,22 @@ for i = 1:length(out.filename)
                 dethess(k,j) = det(hess);
                 normcurv(k,j) = (1+fx(k,j)^2+fy(k,j)^2);
                 jac(k,j) = norm([fx(k,j), fy(k,j)]);
-                perc_change(k,j) = norm([100*abs(vq(k+1,j)-vq(k,j))/2, 100*abs(vq(k,j+1)-vq(k,j))/2]);
             end
         end
         
         curv_first(i,q) = mean(mean(abs(jac),'omitnan'), 'omitnan');
-        curvature(i,q) =  mean(mean(abs(dethess./normcurv),'omitnan'),'omitnan');
-        perc_change_all(i,q) = mean(mean(perc_change, 'omitnan'), 'omitnan');
-        common_method(i,q) = perc_change(10, 30);
+        curvature(i,q) =  mean(mean(abs(dethess./normcurv),'omitnan'),'omitnan'); 
         
     end
 end
 
 [ranked_curv, curvature_sort] = sort(curvature(:,3));
 [ranked_curv_first, curv_sort_first] = sort(curv_first(:,3));
-[ranked_perc, curv_sort_perc] = sort(perc_change_all(:,3));
 
 %normalize curvature between -1:1:
 curvature_norm = (curvature(:,3)-min(curvature(:,3)))/(range(curvature(:,3)))
 
-close all
+
 
 
 %% find max and min of each quantile

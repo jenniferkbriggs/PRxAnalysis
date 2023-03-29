@@ -1,4 +1,4 @@
-function [PRX_store, opt, optfish, time_final] = PRxcalc(icp, abp,fs,opts, t)
+function [PRX_store, opt, optfish, time_final, CPP_final] = PRxcalc(icp, abp,fs,opts, t)
 % options to caluclate CPPopt or plot
 try
     opts.calccppopt;
@@ -33,7 +33,7 @@ for avy = [1:length(aves)]
     for i = 1:length(meanwidths)-1 %loop to average the abp every 'avy' seconds
         io(i) = mean(icp(meanwidths(i):meanwidths(i+1)));
         ao(i) = mean(abp(meanwidths(i):meanwidths(i+1)));
-        %CPP_m(i) = mean(CPP(meanwidths(i):meanwidths(i+1)));
+        CPP_m(i) = mean(CPP(meanwidths(i):meanwidths(i+1)));
         %to(i) = mean(t(meanwidths(i):meanwidths(i+1)));
         to(i) = mean(t(meanwidths(i):meanwidths(i+1)));
     end
@@ -44,18 +44,19 @@ for avy = [1:length(aves)]
         corwidth_j = [1:cory/5:length(io)]; %correlation windows overlap 4/5 of the way] 
         PRx = nan(1,length(corwidth_j)-5);
         time = nan(1,length(corwidth_j)-5);
+        CPP2 = nan(1,length(corwidth_j)-5);
         for j = 1:length(corwidth_j)-5
             PRx(j) = corr(ao(corwidth_j(j):corwidth_j(j+5)), io(corwidth_j(j):corwidth_j(j+5)));
             %time(j) = mean(to(corwidth_j(j):corwidth_j(j+5)));
             time(j) = mean(to(corwidth_j(j):corwidth_j(j+5)));
-            % CPP2(j) = median(CPP_m(corwidth_j(j):corwidth_j(j+5)));
+            CPP2(j) = median(ao(corwidth_j(j):corwidth_j(j+5))-io(corwidth_j(j):corwidth_j(j+5)));
         end  
         %note that the eventual PRx that is given is not indexed by time,
         %but rather by 4*cory/5
         
         PRX_store(avy, cory, 1:length(PRx)) = PRx; %store PRx
         time_final(avy, cory, 1:length(time)) = time;
-        
+        CPP_final(avy,cory, 1:length(time)) = CPP2;
         if ~isempty(find(diff(time)<0))
             disp('Problem time is wrong')
             disp(['Cor:' num2str(cory)])

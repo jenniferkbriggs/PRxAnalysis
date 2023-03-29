@@ -1,4 +1,4 @@
-function [commonPRx, PRx, commonCPP, PRx_icm, time_final,icp, abp] = trackTBI_PRx(filename, fourhrs,opts)
+function [commonPRx, PRx, commonCPP, PRx_icm, time_final,icp, abp,CPP_final] = trackTBI_PRx(filename, fourhrs,opts)
 %input abp file name, will automatically load abp
 close all
 addpath('~/Git/ABP2ICP/CA_assessment/PRxdata')
@@ -29,7 +29,7 @@ fs = 1/mean(diff(icpt));
 
 if fourhrs == 1
 % Find a CPPopt middle four hours (middleish because most stable data normally)
-fourWidth = round(fs*4*60*60); %number of PRx/CPPopt data points in four hrs.
+fourWidth = round(fs*6*60*60); %number of PRx/CPPopt data points in four hrs.
 
 if length(abpt) - fourWidth > fourWidth %if there is eight hours of data
     bsmax = 1;
@@ -104,9 +104,9 @@ end
         %calculate CPP
         CPP = abp - icp;
 
-         [PRX, tt] = PRxcalc_byHR(icp, abp,fs,opts, icpt); %actual function which calculates everything
+        % [PRX, tt] = PRxcalc_byHR(icp, abp,fs,opts, icpt); %actual function which calculates everything
 
-        %[PRX, opt,optfish, tt] = PRxcalc(icp, abp,fs,opts, icpt); %actual function which calculates everything
+        [PRX, opt,optfish, tt,CPP_final] = PRxcalc(icp, abp,fs,opts, icpt); %actual function which calculates everything
         %[PRX] = randi(10,4,4,4);%PRxcalc(icp, abp,opts); %actual function which calculates everything
     
         time_final = tt;

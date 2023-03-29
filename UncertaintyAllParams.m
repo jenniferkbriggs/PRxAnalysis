@@ -1,3 +1,5 @@
+%% Used for making contour plots figure 6.
+clear all
 close all
 
 if ~exist('out') %load data if not already loaded
@@ -18,7 +20,12 @@ for i = 1:length(out.PRx)
     AllPRx(i,:,:) = out.quantiles(i).data(:,:,3);
 end
     
-Labels = {}
+[hav, hcor] = meshgrid([1:30], [1:65]); %0.1 indicates correlation samples
+hhav = reshape(hav, [], 1);
+hhcor = reshape(hcor, [], 1);
+
+%Making labels.
+Labels = {} 
 for i = 1:length(hhav)
 Labels{i} = (sprintf('Avg: %d s, Corr: %d samp', hhav(i), hhcor(i)));
 Labels_av{i} = (sprintf('Avg: % d s', hhav(i)));
@@ -31,6 +38,8 @@ AllPRxt = array2table(AllPRx', 'VariableNames',Labels);
 writetable(AllPRxt, '/data/brain/tmp_jenny/PRxError/Results/6.06.222_patientresults/AllPRxT.csv')
 
 meanPRx = squeeze(mean(squeeze(mean(AllPRx,2,'omitnan')),2,'omitnan'));
+meanPRx = squeeze(mean(squeeze(mean(AllPRx(:,5:15, 20:45),2,'omitnan')),2,'omitnan'));
+
 
 for i = 1:21
 Bias(i,:,:) = AllPRx(i,:,:) - meanPRx(i);

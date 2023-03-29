@@ -1,5 +1,5 @@
 % Look at PRx synthetic for different frequencies
-%clear all
+clear all
 close all
 clc
 
@@ -19,7 +19,7 @@ min_intact = []
 for i = 1:length(files)
     disp(i)
     load(files(i).name)
-    if 1
+    if 0
         time_absent = time_absent_HR;
         time_impaired = time_impaired_HR;
         time_intact = time_intact_HR;
@@ -38,6 +38,8 @@ for i = 1:length(files)
     Q_impaired = quantile(PRx_impaired(:,:,:), [0.025, 0.25, 0.5, 0.075, 0.975],3);
     Q_absent = quantile(PRx_absent(:,:,:), [0.025, 0.25, 0.5, 0.075, 0.975],3);
 
+
+    
     %calculate error
     Error_intact = (Q_intact - 0);
     Error_impaired = (Q_impaired - 0.44);
@@ -46,11 +48,35 @@ for i = 1:length(files)
     Err_impaired_all(i,:,:) = Error_impaired(:,:,3);
     Err_absent_all(i,:,:) = Error_absent(:,:,3);
     
-    %calculate Uncertainty
-%     STD_intact(i,:,:) = std(PRx_intact, [], 3, 'omitnan');
-%     STD_intact(i,:,:) = std(PRx_intact, [], 3, 'omitnan');
-%     STD_intact(i,:,:) = std(PRx_intact, [], 3, 'omitnan');
-%     
+    %calculate Bias for figure 5
+    STD_intact(i,:,:) = std(PRx_intact, [], 3, 'omitnan');
+    STD_intact(i,:,:) = std(PRx_intact, [], 3, 'omitnan');
+    STD_intact(i,:,:) = std(PRx_intact, [], 3, 'omitnan');
+
+    if 1 
+        for k = 1:30
+            for j = 2:64
+                deviation_from_true(i*3-2,k,j) = mean(squeeze(PRx_intact(k,j,:)) - 0, 'omitnan');
+                deviation_from_true(i*3-1,k,j) = mean(squeeze(PRx_impaired(k,j,:)) - .44, 'omitnan');
+                deviation_from_true(i*3,k,j) = mean(squeeze(PRx_absent(k,j,:)) - 0.97, 'omitnan');
+            end
+        end
+    end 
+    total_bias = squeeze(mean(deviation_from_true(:,:,:),1,'omitnan'));
+    uncertainty_mean = squeeze(std(deviation_from_true(:,:,:),[],1,'omitnan'));
+
+    %find optimal
+    optimal_uncertainty = (uncertainty_mean < 0.22);
+    writematrix(optimal_uncertainty, '/data/brain/tmp_jenny/PRxError/Results/synthetic_STD_all_bin.csv')
+
+    optimal_bias = (abs(total_bias) < 0.22);
+    writematrix(optimal_bias, '/data/brain/tmp_jenny/PRxError/Results/synthetic_Mean_all_bin.csv')
+
+
+
+    writematrix(squeeze(mean(deviation_from_true(:,:,:),1,'omitnan')),'/data/brain/tmp_jenny/PRxError/Results/synthetic_Mean_all.csv')
+    writematrix(squeeze(std(deviation_from_true(:,:,:),[],1,'omitnan')),'/data/brain/tmp_jenny/PRxError/Results/synthetic_STD_all.csv')
+
 %     % minimize error and std: 
 %     costfunc_intact = (abs(Error_intact(:,:,3)).*(std(PRx_intact, [], 3, 'omitnan'))).^2;
 %     costfunc_impaired = (abs(Error_impaired(:,:,3)).*(std(PRx_impaired, [], 3, 'omitnan'))).^2;
