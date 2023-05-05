@@ -1,6 +1,6 @@
 function [PRX_store, time_final] = PRxcalc_byHR(icp, abp,fs,opts, t)
 %%% -----------------------------------------------------------------------------
-% This is the main function used for calculating PRx by hear beat!!
+% This is the main function used for calculating PRx by heartbeat!!
 % Inputs: 
 % -- icp: Intracranial Pressure
 % -- abp: Arterial blood pressure
