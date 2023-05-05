@@ -1,38 +1,50 @@
 function [commonPRx, PRx, commonCPP, PRx_icm, time_final,icp, abp,CPP_final] = trackTBI_PRx(filename, fourhrs,opts)
-%input abp file name, will automatically load abp
+%% -----------------------------------------------------------------------------
+% This function first preprocesses ICP and ABP from patient data, then calls PRxcalc.m to calculate PRx
+% Inputs: 
+% -- filename: location of the patient data file
+% ----> Assumed datasets in name:
+% ---->>>> icpt: Intracranial pressure time
+% ---->>>> icp: Intracranial pressure 
+% ---->>>> abpt: Arterial blood pressure time
+% ---->>>> abp: Arterial blood pressure
+% -- fourhrs: A binary string (1) if you want to calculate only 4 hours (0) if you want to calculate PRx over the entire dataset
+% -- opts: options structure for PRx calculation
+% ------- opts.figs if you want to automatically plot PRx output and contour plots
+% Jennifer Briggs 2022
+%% -----------------------------------------------------------------------------
+
 close all
 addpath('~/Git/ABP2ICP/CA_assessment/PRxdata')
+
+%Chane the directory to the location of the patient files. 
 cd('/data/brain/tmp_jenny/trackclean/withcbf/')
-warning('off')
+warning('off') %Warnings are turned off because the indicies for PRx time points are not always integers - we just let matlab round.
 
 if ~exist('opts')
     opts = [];
 end
 
-opts.calccppopt = 0;
-
-
+%% Load data from filename
 load(filename)
-loc=strfind(filename, 'abp')
 try
-PRx_icm = PRx; 
-clear PRx PRxt
+    PRx_icm = PRx; %If PRx is calculated in the clinical data set, we store it here for later.
+    clear PRx PRxt
 end
 
-    
-
-patnum = filename(1:16)
+patnum = filename(1:16); %save the patient number - this is formatted specifically for my dataset
 
 
 %% Calculate PRx for different averaging windows
 fs = 1/mean(diff(icpt));
 
 if fourhrs == 1
-% Find a CPPopt middle four hours (middleish because most stable data normally)
+% Find four hours (middleish because most stable data normally)
 fourWidth = round(fs*6*60*60); %number of PRx/CPPopt data points in four hrs.
 
+%Cut the data into four hours - if there is more than eight hours, the data will be cut in two
 if length(abpt) - fourWidth > fourWidth %if there is eight hours of data
-    bsmax = 1;
+    bsmax = 2;
 else
     bsmax = 1
 end
@@ -43,8 +55,7 @@ end
     bs = 1;
     
     while bs <= bsmax
-        %try
-       
+        %Making sure that icp and abp are time synchronized
         if length(icp)~= length(abp)
             ll = length(icpt) - length(abpt);
             if ll > 0
@@ -69,22 +80,8 @@ end
                 end
             end
         end
-        
-        
-%         % Sanity check
-%         if (abs(abpt(1) - icpt(1)))>1 | (abs(abpt(end) - icpt(end)))>1
-%             disp('Times do not match')
-%             keyboard
-%             disp(num2str(abpt(1)-icpt(1)))
-%             commonPRx =NaN
-%             PRx=NaN
-%             commonCPP=NaN
-%             PRx_icm = NaN
-%             time_final = NaN
-%             return
-%         end
-        
-         abp = abpsave;
+
+        abp = abpsave;
         if (fourWidth)>length(abp)
             disp('Width is shorter than four hours')
             fourWidth = length(abp);
@@ -104,10 +101,8 @@ end
         %calculate CPP
         CPP = abp - icp;
 
-        % [PRX, tt] = PRxcalc_byHR(icp, abp,fs,opts, icpt); %actual function which calculates everything
-
+        %% Finally we actually calculate PRx! %% 
         [PRX, opt,optfish, tt,CPP_final] = PRxcalc(icp, abp,fs,opts, icpt); %actual function which calculates everything
-        %[PRX] = randi(10,4,4,4);%PRxcalc(icp, abp,opts); %actual function which calculates everything
     
         time_final = tt;
         
@@ -117,90 +112,50 @@ end
         PRx = PRX;
         
         
-        if opts.calccppopt
-        cppopt(:,:,bs) = opt;
-        cpoptfish(:,:,bs) = optfish;
-        end
-        
         if opts.figs 
-        figure, 
-        contourf(maxPRx(:,:,bs), 'edgecolor','none')
-        h= colorbar
-        ylabel(h, 'Maximum PRx')
-        title('Variation in max PRx value')
-        xlabel('Number of samples taken for correlation')
-        ylabel('Averaging Window (seconds)')
-        hold on, scatter([60,30,40,30],[6,10,5,15],'black', 'filled')
-        text(min(15),mean([6,10,5]),'Common choices for PRx calculation')
-        saveas(gcf, ['/data/brain/tmp_jenny/PRxError/trackTBI/' patnum num2str(bs) 'maxprx.fig'])
+            figure, 
+            contourf(maxPRx(:,:,bs), 'edgecolor','none')
+            h= colorbar
+            ylabel(h, 'Maximum PRx')
+            title('Variation in max PRx value')
+            xlabel('Number of samples taken for correlation')
+            ylabel('Averaging Window (seconds)')
+            hold on, scatter([60,30,40,30],[6,10,5,15],'black', 'filled')
+            text(min(15),mean([6,10,5]),'Common choices for PRx calculation')
+            saveas(gcf, ['/data/brain/tmp_jenny/PRxError/trackTBI/' patnum num2str(bs) 'maxprx.fig'])
 
-        figure,
-        contourf(minPRx(:,:,bs), 'edgecolor','none')
-        h = colorbar;
-        ylabel(h,'minimum PRx')
-        title('Variation in min PRx value')
-        xlabel('Number of samples taken for correlation')
-        ylabel('Averaging Window (seconds)')
-        hold on, scatter([60,30,40,30],[6,10,5,15],'black', 'filled')
-        text(min(15),mean([6,10,5]),'Common choices for PRx calculation')
+            figure,
+            contourf(minPRx(:,:,bs), 'edgecolor','none')
+            h = colorbar;
+            ylabel(h,'minimum PRx')
+            title('Variation in min PRx value')
+            xlabel('Number of samples taken for correlation')
+            ylabel('Averaging Window (seconds)')
+            hold on, scatter([60,30,40,30],[6,10,5,15],'black', 'filled')
+            text(min(15),mean([6,10,5]),'Common choices for PRx calculation')
 
-        saveas(gcf, ['/data/brain/tmp_jenny/PRxError/trackTBI/' patnum num2str(bs) 'minprx.fig'])
+            saveas(gcf, ['/data/brain/tmp_jenny/PRxError/trackTBI/' patnum num2str(bs) 'minprx.fig'])
 
-        figure,
-        contourf(meanPRx(:,:,bs), 'edgecolor','none')
-        h = colorbar
-        ylabel(h, 'PRx')
-        title('Average in PRx')
-        xlabel('Number of samples taken for correlation')
-        ylabel('Averaging Window (seconds)')
-        hold on, scatter([60,30,40,30],[6,10,5,15],'black', 'filled')
-        text(min(15),mean([6,10,5]),'Common choices for PRx calculation')
+            figure,
+            contourf(meanPRx(:,:,bs), 'edgecolor','none')
+            h = colorbar
+            ylabel(h, 'PRx')
+            title('Average in PRx')
+            xlabel('Number of samples taken for correlation')
+            ylabel('Averaging Window (seconds)')
+            hold on, scatter([60,30,40,30],[6,10,5,15],'black', 'filled')
+            text(min(15),mean([6,10,5]),'Common choices for PRx calculation')
 
-        saveas(gcf, ['/data/brain/tmp_jenny/PRxError/trackTBI/' patnum num2str(bs) 'meanprx.fig'])
-
-        if opts.calccppopt 
-        figure,
-        contourf(cppopt(:,:,bs), 'edgecolor','none')
-        h = colorbar
-        ylabel(h, 'CPPopt [mmHg]')
-        title('Variation in CPPopt')
-        xlabel('Number of samples taken for correlation')
-        ylabel('Averaging Window (seconds)')
-        hold on, scatter([60,30,40,30],[6,10,5,15],'black', 'filled')
-        text(min(15),mean([6,10,5]),'Common choices for PRx calculation')
-        saveas(gcf, ['/data/brain/tmp_jenny/PRxError/trackTBI/' patnum num2str(bs) 'cppopt.fig'])
-
-
-        figure,
-        contourf(cppoptfish(:,:,bs), 'edgecolor','none')
-        h = colorbar
-        ylabel(h, 'CPPopt [mmHg]')
-        title('Variation in CPPopt')
-        xlabel('Number of samples taken for correlation')
-        ylabel('Averaging Window (seconds)')
-        hold on, scatter([60,30,40,30],[6,10,5,15],'black', 'filled')
-        text(min(15),mean([6,10,5]),'Common choices for PRx calculation')
-        saveas(gcf, ['/data/brain/tmp_jenny/PRxError/trackTBI/' patnum num2str(bs) 'cppoptfish.fig'])
-
-        end
-        commonCPP(1,:,bs) = [cppopt(6,60,bs) cppoptfish(6,60,bs)];
-        commonCPP(2,:,bs) = [cppopt(10,30,bs) cppoptfish(10,30,bs)];
-        commonCPP(3,:,bs) = [cppopt(5,40,bs) cppoptfish(5,40,bs)];
-        commonCPP(4,:,bs) = [cppopt(15,30,bs), cppoptfish(15,30,bs)];
+            saveas(gcf, ['/data/brain/tmp_jenny/PRxError/trackTBI/' patnum num2str(bs) 'meanprx.fig'])
         end
         
-        commonCPP = [];
+        commonPRx = [];
         commonPRx(1,:) = [maxPRx(6,60,bs), minPRx(6,60,bs), meanPRx(6,60,bs)];
         commonPRx(2,:) = [maxPRx(10,30,bs), minPRx(10,30,bs),meanPRx(10,30,bs)];
         commonPRx(3,:) = [maxPRx(5,40,bs), minPRx(5,40,bs),meanPRx(5,40,bs)];
         commonPRx(4,:) = [maxPRx(15,30,bs), minPRx(15,30,bs), meanPRx(15,30,bs)];
 
         bs = bs+1
-   % catch
-%             disp('PRx caculation unsucessful')
-%             commonPRx = NaN;
-%             commonCPP =[];
-%             PRx = NaN;
-%             bs = bsmax + 1;
+
     end
 end
