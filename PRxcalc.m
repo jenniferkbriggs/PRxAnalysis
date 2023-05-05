@@ -8,6 +8,12 @@ function [PRX_store, opt, optfish, time_final, CPP_final] = PRxcalc(icp, abp,fs,
 % -- t: Time (s)
 % -- opts: options structure for PRx calculation
 % ------- opts.figs if you want to automatically plot PRx output and contour plots
+% Outputs:
+% -- PRX_store: 3D matrix with PRx over time for every hyperparameter pair
+% -- opt: unimportant. (these were used when calculating CPPopt as well, not useful for this paper)
+% -- optfish: unimportant. 
+% -- time_final: 3D matrix corresponding to timepoint for each PRx calculation
+% -- CPP_final: 3D matrix corresponding to median CPP during PRx calculation
 % Jennifer Briggs 2022
 %% -----------------------------------------------------------------------------
 try 
