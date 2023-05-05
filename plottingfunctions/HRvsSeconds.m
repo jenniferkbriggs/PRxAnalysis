@@ -1,8 +1,12 @@
-%compare HR and Second methods
-%load and plot data from PRxValidation
+%%% -----------------------------------------------------------------------------
+% This is a script that creates violin plots for heartrate vs seconds. 
+% Dependency can be downloaded: https://github.com/bastibe/Violinplot-Matlab
+% Jennifer Briggs 2022
+%% -----------------------------------------------------------------------------
+
 addpath('~/Git/UniversalCode/')
 
-%patient data
+%Load analyses from heart rate and seconds methods
 patSec = load('/data/brain/tmp_jenny/PRxError/Results/6.06.222_patientresults/9.26.2022_Patient.mat')
 patHR = load('/data/brain/tmp_jenny/PRxError/Results/6.06.222_patientresults/12.17.2022_HRPatient.mat')
 
@@ -73,12 +77,6 @@ violinplot([HRpercchange(1:21)', secpercchange'],...
 
 plot2D(out, 3, [1,4])
 plot2D(patHR, 3, [1,4])
-
-
-
-
-
-
 
 load('/data/brain/tmp_jenny/PRxError/Results/1.01.2023_HR/HRvsSeconds.mat')
 

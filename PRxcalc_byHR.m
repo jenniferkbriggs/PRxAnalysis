@@ -1,5 +1,15 @@
 function [PRX_store, time_final] = PRxcalc_byHR(icp, abp,fs,opts, t)
-% options to caluclate CPPopt or plot
+%%% -----------------------------------------------------------------------------
+% This is the main function used for calculating PRx by hear beat!!
+% Inputs: 
+% -- icp: Intracranial Pressure
+% -- abp: Arterial blood pressure
+% -- fs: Frequency of data collection
+% -- t: Time (s)
+% -- opts: options structure for PRx calculation
+% ------- opts.figs if you want to automatically plot PRx output and contour plots
+% Jennifer Briggs 2022
+%% -----------------------------------------------------------------------------
 try
     opts.calccppopt;
 catch
@@ -12,25 +22,22 @@ catch
     opts.figs = 0;
 end
 
-
-
+%(1) Itterate over all averaging width - now aves is the number of heartbeats to average over
 CPP = abp - icp;
 aves = [1:30];
 PRX_store = nan(length(aves), length([2:65]), 4000); %not sure what to make last number
 time_final = nan(length(aves), length([2:65]), 4000);
-peaks = findheartbeat(abp, icp, CPP, t);
-for avy = [1:length(aves)] %now aves is the number of heartbeats to average over
+peaks = findheartbeat(abp, icp, CPP, t); %calls findheartbeat function which returns all heartbeats for the patient
+for avy = [1:length(aves)] 
     meanwidths = [1:avy:length(peaks)];
     meanwidths = peaks(meanwidths); %Gives the location to pull peaks from
     for i = 1:length(meanwidths)-1 %loop to average the abp every 'avy' seconds
         io(i) = mean(icp(meanwidths(i):meanwidths(i+1)));
         ao(i) = mean(abp(meanwidths(i):meanwidths(i+1)));
-        %CPP_m(i) = mean(CPP(meanwidths(i):meanwidths(i+1)));
-        %to(i) = mean(t(meanwidths(i):meanwidths(i+1)));
         to(i) = mean(t(meanwidths(i):meanwidths(i+1)));
     end
     
-    % look over correlation samples
+    % (2) Correlation over correlation samples
     for cory = 1:65 %correlation windows (in number of samples), from 1 to 65 samples
         close all
         corwidth_j = [1:cory/5:length(io)]; %correlation windows overlap 4/5 of the way] 
@@ -48,9 +55,6 @@ for avy = [1:length(aves)] %now aves is the number of heartbeats to average over
         PRX_store(avy, cory, 1:length(PRx)) = PRx; %store PRx
         time_final(avy, cory, 1:length(time)) = time;
         
-%         if avy > 20
-%             keyboard
-%         end
         if ~isempty(find(diff(time)<0))
             disp('Problem time is wrong')
             disp(['Cor:' num2str(cory)])
