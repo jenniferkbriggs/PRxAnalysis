@@ -1,13 +1,28 @@
 function [Heartbeats, meanHR, stdHR] = findheartbeat(abp, icp, CPP, Time)
-    %make sure abp is a row vector...
-    if size(abp, 1) < size(abp,2)
+%%% -----------------------------------------------------------------------------
+% This function is used for extracting heart beat from abp and icp
+%Input: 
+% -- icp: Intracranial Pressure
+% -- abp: Arterial blood pressure
+% -- CPP: Cerebral Perfusion Pressure
+% -- Time: Time (s)
+% Output:
+% - Heartbeats: Vector with index of beginning of systole
+% - meanHR: single number giving average heart rate
+% - stdHR: standard deviation of the heart rates
+% Jennifer Briggs 2022
+%% -----------------------------------------------------------------------------
+    if size(abp, 1) < size(abp,2) %Make sure that the array size is correct
         abp = abp';
     end
-    %try a sliding window:
+
+    %We extract heart heat over a sliding window of one minute
     ap = [];
-    window = [1:125*60:length(abp)]; %one minute at a time
+    window = [1:125*60:length(abp)]; %one minute at a time - assuming frequency is 125 Hz
     for i = 1:length(window)-1
-        XX = (find(isnan(CPP(window(i)+200:window(i+1)+200))));
+
+        %Checking for nan - if there are too many then the heart rates are just the average frequency from the previous window
+        XX = (find(isnan(CPP(window(i)+200:window(i+1)+200)))); 
         Switch = 1;
         maxap = quantile(abp(window(i):window(i+1)+200), 0.90);
         minap = quantile(abp(window(i):window(i+1)+200), 0.1);
@@ -27,20 +42,17 @@ function [Heartbeats, meanHR, stdHR] = findheartbeat(abp, icp, CPP, Time)
             [~,ap1] = findpeaks(-abp(window(i):window(i+1)+200), 'MinPeakProminence', (maxap-minap)./2);
             ap1 = ap1+window(i)-1;
             ap1 = unique([ap1; ap3']);
-
-        else
-        [~,ap1] = findpeaks(-abp(window(i):window(i+1)+200), 'MinPeakProminence', (maxap-minap)./2);
+        else %This is the case for most windows. 
+        [~,ap1] = findpeaks(-abp(window(i):window(i+1)+200), 'MinPeakProminence', (maxap-minap)./2); %find heartbeats!
         ap1 = ap1+window(i)-1;
-%         plot([window(i):window(i+1)+200], abp(window(i):window(i+1)+200))
-%         xline(ap1), keyboard, close all
         end
-       ap2 = setdiff(ap1, ap);
-       XM = ap2(2:end)-ap2(1:end-1);
+       ap2 = setdiff(ap1, ap); %Since we use a sliding window, remove any heart beats that occur twice 
+       %Another sanity check - make sure that the average distance between heartbeats aren't too close together, if they are, remove eraneous 'heartbeat'
+       XM = ap2(2:end)-ap2(1:end-1); 
        double = find(XM < 35);
        ap2(double+1) = [];
-       XT = find(diff(ap2)>300);
+       XT = find(diff(ap2)>300); %similar idea
        if length(XT)>1
-           %keyboard
            disp('Err')
        end
 
@@ -75,15 +87,6 @@ function [Heartbeats, meanHR, stdHR] = findheartbeat(abp, icp, CPP, Time)
     end
     
     figure, plot(diff(ap))
-    %[~,ap2] = findpeaks(abp, 'MinPeakDistance', 125/3);
-%     [~,ip1] = findpeaks(-icp, 'MinPeakProminence',5);
-%     [~,ip2] = findpeaks(icp, 'MinPeakDistance', 125/3);
-%     
-% %    ap = intersect(ap1,ap2);
-%    ip = intersect(ip1,ip2);
-%     if (length(ap1)-length(ap2))> 5000
-%         keyboard
-%     end
     Heartbeats = ap;
     HB = diff(ap)/125;
     HB = rmoutliers(HB);
