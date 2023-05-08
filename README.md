@@ -12,15 +12,19 @@ This is the function to identify heartbeats.
 Calculate PRx by heartbeat rater than seconds
 ### PRxcalc.m
 Calculate PRx using seconds method.
-### PRxvalidation.m
+### runSimulatedPRx.m
+Code used to create and calculate PRx for simulated data.
 
 
 # Upstream Run files
-### PRx_fortrack.m
+### runtrackTBI_PRx.m
 This is the script for running and saving PRx for all patient files
 
 
-# Plotting Files
-### HRvsSecons.m
+# Plotting/Analysis Files (located under plottingfunctions/
+### syntheticanalysisHR.m
+Script for comparing PRx from HR method and PRx from seconds method in synthetic data
+
+### HRvsSeconds.m
 Plots Figure 6c.
 
