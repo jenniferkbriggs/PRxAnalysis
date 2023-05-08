@@ -1,4 +1,9 @@
- %% Plot time series
+%%% -----------------------------------------------------------------------------
+% This function is used to compare clinical data set with PRx output
+%Input: 
+% -- out: strcture containing output from trackTBI_PRx.m
+% Jennifer Briggs 2022
+%% -----------------------------------------------------------------------------
 % ICM+ is 10 sec av, 30 cor
 function [maxcor, maxlag] = ploticm(out)
     av = 10

@@ -1,14 +1,16 @@
-%run trackTBI_PRx and get results
-clear all
-close all
-
+%%% -----------------------------------------------------------------------------
+% Run file for calculating PRx from all files
+% Jennifer Briggs 2022
+%% -----------------------------------------------------------------------------
 addpath('/home/jenniferb/Git/ABP2ICP/CA_assessment/PRxdata/')
-cd /data/brain/tmp_jenny/trackclean/withcbf/
+cd datadir %navigate to data files: 
+savename = '' %Put directory you'd like to save to
+
 
 files = dir('*.mat')
 opts.calccppopt = 0;
 opts.figs = 0;
-for i = 4% 1:length(files)
+for i = 1:length(files)
     load(files(i).name)
     out.PRx_icmpplus(i).data = PRx;
     out.PRx_icmpplus_time(i).data = PRxt;
@@ -36,6 +38,6 @@ for i = 4% 1:length(files)
 
     out.CPP(i).data =CPP_final; 
     
-    save('/data/brain/tmp_jenny/PRxError/Results/6.06.222_patientresults/Patient4CPP.mat', 'out', '-v7.3')
+    save(savename, 'out', '-v7.3')
 end
     

@@ -1,4 +1,9 @@
-% Look at PRx synthetic for different frequencies
+%%% -----------------------------------------------------------------------------
+% This is the script used for comparing PRx from HR method and PRx from seconds method
+% for synthetic data.
+% Jennifer Briggs 2022
+%% -----------------------------------------------------------------------------
+
 clear all
 close all
 clc

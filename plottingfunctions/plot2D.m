@@ -1,5 +1,13 @@
 %% Plot quantiles contour
 function fig = plot2D(out, q,patnum)
+%%% -----------------------------------------------------------------------------
+% This function is used for plotting the contour plots of median PRx for multiple patients
+%Input: 
+% -- out: strcture containing output from trackTBI_PRx.m
+% -- q: Quantile to plot (3 is median)
+% -- patnum: array of patient numbers to plot
+% Jennifer Briggs 2022
+%% -----------------------------------------------------------------------------
 try
     addpath('~/Git/UniversalCode/')
 catch
