@@ -1,7 +1,13 @@
 
 function fig = plotcontinuous(out, q, patnum) %patnum is optional 
-
-%load and plot data from PRxValidation
+%%% -----------------------------------------------------------------------------
+% This function is used for plotting the 3D surface plots of PRx for multiple patients
+%Input: 
+% -- out: strcture containing output from trackTBI_PRx.m
+% -- q: Quantile to plot (3 is median)
+% -- patnum: array of patient numbers to plot
+% Jennifer Briggs 2022
+%% -----------------------------------------------------------------------------
 try
     addpath('~/Git/UniversalCode/')
 catch

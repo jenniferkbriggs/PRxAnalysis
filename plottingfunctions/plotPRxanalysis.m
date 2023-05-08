@@ -3,16 +3,10 @@ clear all
 close all
 clc
 
- if 1
-    filename = '/data/brain/tmp_jenny/PRxError/Results/6.06.222_patientresults/'
-    savename = '9.26.2022_Patient.mat'
-    addpath('~/Git/UniversalCode/')
-else
-    filename = '/Volumes/Briggs_2TB/Albers/PRxError/'
-    savename='9.01.Patient.mat'
-    addpath('~/Documents/GitHub/UniversalCode/')
 
-end
+filename = %filename here
+savename = %savename here
+addpath('~/Git/UniversalCode/')
 load([filename savename])
 
 
