@@ -22,9 +22,33 @@ This is the script for running and saving PRx for all patient files
 
 
 # Plotting/Analysis Files (located under plottingfunctions/
+
+### bias_between_common.m
+Script used for Fig 3a.
+
+### plottime.m
+Script used for Figure 3b and Figure 5.
+
+### plot2D.m
+Script used for Fig 3c top pannel
+
+### plotcontinuous.m
+Script used for Fig 3c blottom left and right pannels.
+
+### plotPRxanalysis.m
+Scatter plot for figure 3c middle pannel
+
 ### syntheticanalysisHR.m
-Script for comparing PRx from HR method and PRx from seconds method in synthetic data
+Script for comparing PRx from HR method and PRx from seconds method in synthetic data. Figure 4 and 6.
+
 
 ### HRvsSeconds.m
 Plots Figure 6c.
+
+### PlotPRxanalysis_HR.m
+Script used for Figure 6d and e.
+
+### ploticm.m
+Plots for Supplementary figure 1.
+
 
