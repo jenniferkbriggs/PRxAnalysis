@@ -1,4 +1,4 @@
- %% Plot time series
+%% Plot time series
 % ICM+ is 10 sec av, 30 cor
 function maxcor = ploticm(out)
     av = 10
