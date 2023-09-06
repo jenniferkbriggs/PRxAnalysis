@@ -18,7 +18,7 @@ close all
 addpath('~/Git/ABP2ICP/CA_assessment/PRxdata')
 
 %Chane the directory to the location of the patient files. 
-cd('/data/brain/tmp_jenny/trackclean/withcbf/')
+%cd('/data/brain/tmp_jenny/trackclean/withcbf/')
 warning('off') %Warnings are turned off because the indicies for PRx time points are not always integers - we just let matlab round.
 
 if ~exist('opts')
@@ -30,9 +30,11 @@ load(filename)
 try
     PRx_icm = PRx; %If PRx is calculated in the clinical data set, we store it here for later.
     clear PRx PRxt
+catch 
+    PRx_icm = [];
 end
 
-patnum = filename(1:16); %save the patient number - this is formatted specifically for my dataset
+patnum = filename; %save the patient number - this is formatted specifically for my dataset
 
 
 %% Calculate PRx for different averaging windows
@@ -99,12 +101,25 @@ end
         end
         
         %calculate CPP
+        [u, indx] = unique(abpt);
+        if length(abp) ~= length(icp)
+            abp = interp1(abpt(indx), abp(indx), icpt);
+            abpt = icpt;
+        end
+
+        if size(abp,1)~=size(icp,1)
+            abp = abp';
+        end
+
         CPP = abp - icp;
 
         %% Finally we actually calculate PRx! %% 
-        [PRX, opt,optfish, tt,CPP_final] = PRxcalc(icp, abp,fs,opts, icpt); %actual function which calculates everything
-    
+     
+     [PRX, opt,optfish, tt,CPP_final] = PRxcalc(icp, abp,fs,opts, icpt); %actual function which calculates everything
+     [PRX, time_final, CPP_final] = PRxcalc_byHR(icp, abp,fs,opts, icpt);
+     try   
         time_final = tt;
+     end
         
         maxPRx(:,:) = max(PRX,[],3);
         minPRx(:,:) = min(PRX,[],3);
@@ -158,4 +173,5 @@ end
         bs = bs+1
 
     end
+    commonCPP = [];
 end

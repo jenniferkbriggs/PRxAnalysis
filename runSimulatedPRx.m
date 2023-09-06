@@ -103,7 +103,7 @@ ABP = y1+y2+y3+y5; %ABP is sum of five frequencies
 negvec = [-1,1];
 
 ABP_new = ABP_new+rand(size(ABP_new)).*negvec(randi(2,size(ABP_new)));
-
+opts.figs  = 0;
 %% CA good always
 ICP = 0.5*y2 + y4; %yall2 is ICP wave. Adding extra slow wave, minimize heartrate
 ming(bs) = icpmin;
@@ -111,10 +111,10 @@ maxg(bs) = maxICP;
 ICP = rescale(ICP, ming(bs), maxg(bs));
 %shift ICP over by 6.8 \pm 3 seconds [Steinmeier 1996 Stroke]
 ICP = ICP(shift_scaled:end);
-ICP = ICP+rand(size(ICP)).*negvec(randi(2,size(ICP)));
-fs = 1/0.0167
-%[PRx_intact(:,:,:), ~, ~, time_intact] = PRxcalc(ICP,ABP_new,fs,opts, x);%aves,x);
-[PRx_intact_HR(:,:,:),time_intact_HR] = PRxcalc_byHR(ICP,ABP_new,fs,opts, x);%aves,x);
+% ICP = ICP+rand(size(ICP)).*negvec(randi(2,size(ICP)));
+ fs = 1/0.0167
+% [PRx_intact(:,:,:), ~, ~, time_intact] = PRxcalc(ICP,ABP_new,fs,opts, x);%aves,x);
+% %[PRx_intact_HR(:,:,:),time_intact_HR] = PRxcalc_byHR(ICP,ABP_new,fs,opts, x);%aves,x);
 
 %% CA always impaired
 ICP = 0.5*y2 + 0.001*y3 + 0.001*y5 + y1 + y4 ; %yall2 is ICP wave. Adding extra slow wave, minimize heartrate
@@ -123,8 +123,8 @@ ICP = rescale(ICP, ming(bs), maxg(bs));
 %shift ICP over by 6.8 \pm 3 seconds [Steinmeier 1996 Stroke]
 ICP = ICP(shift_scaled:end);
 ICP = ICP+rand(size(ICP)).*negvec(randi(2,size(ICP)));
-%[PRx_impaired(:,:,:), time_impaired] = PRxcalc(ICP,ABP_new,fs,opts, x);%,aves,x);
-[PRx_impaired_HR(:,:,:),time_impaired_HR] = PRxcalc_byHR(ICP,ABP_new,fs,opts, x);%aves,x);
+[PRx_impaired(:,:,:), time_impaired] = PRxcalc(ICP,ABP_new,fs,opts, x);%,aves,x);
+%[PRx_impaired_HR(:,:,:),time_impaired_HR] = PRxcalc_byHR(ICP,ABP_new,fs,opts, x);%aves,x);
 
 
 %% CA always bad
@@ -133,7 +133,7 @@ ICP = rescale(ICP, ming(bs), maxg(bs));
 %shift ICP over by 6.8 seconds [Steinmeier 1996 Stroke]
 ICP = ICP(shift_scaled:end);
 ICP = ICP+rand(size(ICP)).*negvec(randi(2,size(ICP)));
-%[PRx_absent(:,:,:), ~, ~, time_absent] = PRxcalc(ICP,ABP_new,fs,opts, x);%aves,x);
+%PRx_absent(:,:,:), ~, ~, time_absent] = PRxcalc(ICP,ABP_new,fs,opts, x);%aves,x);
 [PRx_absent_HR(:,:,:),time_absent_HR] = PRxcalc_byHR(ICP,ABP_new,fs,opts, x);%aves,x);
 
 ICPRange = [ming(bs); maxg(bs)];

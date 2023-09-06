@@ -15,8 +15,8 @@ patHR = load('/data/brain/tmp_jenny/PRxError/Results/6.06.222_patientresults/12.
 HRcommon_method(22,:) = [];
 
 for i = 1:21
-    stdHR(i) = std(squeeze(patHR.out.PRx(i).data(10,30,:)), 'omitnan')
-    stdpat(i) = std(squeeze(patSec.out.PRx(i).data(10,30,:)), 'omitnan')
+    stdHR(i) = std(nonzeros(squeeze(patHR.out.PRx(i).data(10,30,:))), 'omitnan')
+    stdpat(i) = std(nonzeros(squeeze(patSec.out.PRx(i).data(10,30,:))), 'omitnan')
     
     difference(i) = mean(nonzeros(patHR.out.PRx(i).data(10,30,:)),'omitnan') - mean(nonzeros(patSec.out.PRx(i).data(10,30,:)), 'omitnan')
     hr(i) =  mean(nonzeros(patHR.out.PRx(i).data(10,30,:)), 'omitnan')

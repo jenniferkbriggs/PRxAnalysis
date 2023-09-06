@@ -28,8 +28,8 @@ CPP = abp - icp;
 aves = [1:30]; %Averaging windows (seconds) to calculate over.
 
 %Make blank structures to store data 
-PRX_store = nan(length(aves), length([2:65]), 36000); %not sure what to make last number
-time_final = nan(length(aves), length([2:65]), 36000);
+PRX_store = nan(length([1:30]), 65, 36000); %not sure what to make last number
+time_final = nan(length([1:30]), 65, 36000);
 
 %(1) First we itterate over all of the averaging windows
 for avy = [1:length(aves)]

@@ -1,4 +1,4 @@
-function [PRX_store, time_final] = PRxcalc_byHR(icp, abp,fs,opts, t)
+function [PRX_store, time_final, CPP_final] = PRxcalc_byHR(icp, abp,fs,opts, t)
 %%% -----------------------------------------------------------------------------
 % This is the main function used for calculating PRx by heartbeat!!
 % Inputs: 
@@ -25,8 +25,8 @@ end
 %(1) Itterate over all averaging width - now aves is the number of heartbeats to average over
 CPP = abp - icp;
 aves = [1:30];
-PRX_store = nan(length(aves), length([2:65]), 4000); %not sure what to make last number
-time_final = nan(length(aves), length([2:65]), 4000);
+PRX_store = nan(length(aves), 65, 4000); %not sure what to make last number
+time_final = nan(length(aves), 65, 4000);
 peaks = findheartbeat(abp, icp, CPP, t); %calls findheartbeat function which returns all heartbeats for the patient
 for avy = [1:length(aves)] 
     meanwidths = [1:avy:length(peaks)];
@@ -35,6 +35,7 @@ for avy = [1:length(aves)]
         io(i) = mean(icp(meanwidths(i):meanwidths(i+1)));
         ao(i) = mean(abp(meanwidths(i):meanwidths(i+1)));
         to(i) = mean(t(meanwidths(i):meanwidths(i+1)));
+        CPP_m(i) = mean(CPP(meanwidths(i):meanwidths(i+1)));
     end
     
     % (2) Correlation over correlation samples
@@ -47,14 +48,18 @@ for avy = [1:length(aves)]
             PRx(j) = corr(ao(corwidth_j(j):corwidth_j(j+5))', io(corwidth_j(j):corwidth_j(j+5))');
             %time(j) = mean(to(corwidth_j(j):corwidth_j(j+5)));
             time(j) = mean(to(corwidth_j(j):corwidth_j(j+5)));
-            % CPP2(j) = median(CPP_m(corwidth_j(j):corwidth_j(j+5)));
+            CPP2(j) = median(CPP_m(corwidth_j(j):corwidth_j(j+5)));
         end  
         %note that the eventual PRx that is given is not indexed by time,
         %but rather by 4*cory/5
         
         PRX_store(avy, cory, 1:length(PRx)) = PRx; %store PRx
         time_final(avy, cory, 1:length(time)) = time;
-        
+        CPP_final(avy, cory, 1:length(CPP2)) = CPP2;
+
+        if length(find(~isnan(PRx))) < 3
+            keyboard
+        end
         if ~isempty(find(diff(time)<0))
             disp('Problem time is wrong')
             disp(['Cor:' num2str(cory)])
