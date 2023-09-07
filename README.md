@@ -23,11 +23,9 @@ This is the script for running and saving PRx for all patient files
 
 # Plotting/Analysis Files (located under plottingfunctions/
 
-### bias_between_common.m
-Script used for Fig 3a.
 
 ### plottime.m
-Script used for Figure 3b and Figure 5.
+Script used for Figure 3a,b and Figure 5.
 
 ### plot2D.m
 Script used for Fig 3c top pannel
