@@ -1,9 +1,6 @@
 %Make Table for comparison
-load('/data/brain/tmp_jenny/PRxError/Results/6.06.222_patientresults/9.26.2022_Patient.mat')
-Standardestimation = out;
+load('/data/brain/tmp_jenny/PRxError/Results/HRvsStandard_Patient.mat')
 
-load('/data/brain/tmp_jenny/PRxError/Results/6.06.222_patientresults/12.17.2022_HRPatient.mat')
-HRestimation = out;
 %compare 10 and 40 std:
 for i = 1:21
     tenforty(i,:) = [std(nonzeros(squeeze(Standardestimation.PRx(i).data(10, 30, :))), 'omitnan'), ...
@@ -55,11 +52,50 @@ end
 percchangecomparison = mean([percchange_all_hr(1:21); percchange_all_s]')
 
 %calculate empirical estimator bias: 
-[HR_bias, HR_st] = plottime(HRestimation)
-[Standard_bias, Standard_st] = plottime(Standardestimation)
+[empiricalerror_HR, empiricalerror_S] = EmpiricalError_HR(HRestimation, Standardestimation)
 
-%range of PRxvalues
+%Standard 30
+[~,indx] = max(abs(empiricalerror_S(:,2)))
+empiricalerror_S(indx,2)
+std(empiricalerror_S(:,2))
+mean(empiricalerror_S(:,2))
 
+%Standard 40
+[~,indx] = max(abs(empiricalerror_S(:,1)))
+empiricalerror_S(indx,1)
+std(empiricalerror_S(:,1))
+mean(empiricalerror_S(:,1))
+
+%HR 30
+[~,indx] = max(abs(empiricalerror_HR(:,2)))
+empiricalerror_HR(indx,2)
+std(empiricalerror_HR(:,2))
+mean(empiricalerror_HR(:,2))
+
+%HR 40 samp
+[~,indx] = max(abs(empiricalerror_HR(:,1)))
+empiricalerror_HR(indx,1)
+std(empiricalerror_HR(:,1))
+mean(empiricalerror_HR(:,1))
+
+
+%ST of PRx over time: 
+for i = 1:21
+    PRx = HRestimation.PRx(i).data(10,30,:);
+    PRx(PRx == 0) = NaN;
+    ST_HR(i) = std(PRx,[],'omitnan')
+
+    PRx = Standardestimation.PRx(i).data(10,30,:);
+    PRx(PRx == 0) = NaN;
+    ST_s(i) = std(PRx,[],'omitnan')
+
+    Range_common_HR(i) = range([(HRestimation.quantiles(i).data(10,40,3)), (HRestimation.quantiles(i).data(10,30,3)), ...
+    (HRestimation.quantiles(i).data(5,40,3)), (HRestimation.quantiles(i).data(15,30,3)),(HRestimation.quantiles(i).data(6,30,3))])
+    
+    Range_common_S(i) = range([(Standardestimation.quantiles(i).data(10,40,3)), (Standardestimation.quantiles(i).data(10,30,3)), ...
+    (Standardestimation.quantiles(i).data(5,40,3)), (Standardestimation.quantiles(i).data(15,30,3)),(Standardestimation.quantiles(i).data(6,30,3))])
+    
+end
 
 %% Synthetic Data:
 HR_synthetic = [mean([std(HR_intact(:,10,40)); std(HR_impaired(:,10,40)); std(HR_absent(:,10,40))])

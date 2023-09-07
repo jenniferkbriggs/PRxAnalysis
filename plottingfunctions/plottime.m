@@ -1,6 +1,6 @@
-    %% Plot time series of most common methods
-function [deviation_from_av, deviation_from_av_st] = plottime(out, patnum)
-%this function is used in figure 3a and b to compare timecourses averages
+   %% Plot time series of most common methods
+function [total_uncertainty_time] = plottime(out, patnum)
+%this function is used in figure 4e, 5e-h to compare timecourses averages
 %of PRx
 
 addpath('home/jenniferb/Git/UniversalCode/')
@@ -123,29 +123,6 @@ addpath('home/jenniferb/Git/UniversalCode/')
     six_40i = interp1(six_40t, six_40, time);
     % eventually, take the average and then mind the average
 
-    % After all of this, we've decided to interpolate everything:
-    for ik = 1:30
-        for j = 2:65
-            time_hyper = squeeze(out.time(patdata).data(ik,j,:));
-            prx_hyper = squeeze(out.PRx(patdata).data(ik,j,:));
-            prx_hyper = prx_hyper(~isnan(time_hyper));
-            time_hyper = time_hyper(~isnan(prx_hyper));
-            prx_hyper = prx_hyper(~isnan(prx_hyper));
-            %to interpolate, we can only interpolate times between min and
-            %max reference time: 
-            interp_indx = find(time_hyper > min(time) & time_hyper<max(time));
-            %and they have to be unique...
-            time_hyper = time_hyper(interp_indx);
-            prx_hyper = prx_hyper(interp_indx);
-
-            [time_hyper_unique, unique_indx] = unique(time_hyper);
-            PRx_all(ik,j,:) = interp1(time_hyper_unique, prx_hyper(unique_indx), time);
-        end
-    end
-
-    all_av = squeeze(mean(mean([PRx_all(5:20, 20:50, :)], 1),2)); %average over a small range of feasible hyperparameters
-    %all_av = mean([ten_40i, ten_30i, five_40i, fifteen_30i, six_40i], 2)     %originally averaging over just the five common hyperparameters
-
 
     if 0 %want to plot the timecourse
     time = (time - time(1))/60/60; % Change to hours
@@ -156,7 +133,7 @@ addpath('home/jenniferb/Git/UniversalCode/')
     end
     xlabel('Hours')
     ylabel('PRx')
-    if 0
+    if 0 %plot bar of CPP on right axis
         cut = find(CPP == 0);
         time = time(1:cut(1));
         CPP = CPP(1:cut(1));
@@ -176,66 +153,60 @@ addpath('home/jenniferb/Git/UniversalCode/')
     end
     
 
-    % Calculate empirical estimator bias
-    if 1
-        deviation_from_av(patdata,:) = [mean(ten_40i - all_av, 'omitnan'), mean(ten_30i - all_av, 'omitnan'), ...
-        mean(five_40i - all_av, 'omitnan'), mean(fifteen_30i - all_av, 'omitnan'), mean(six_40i - all_av, 'omitnan')]
-    end
-
-    %if i == length(patnum)
+    if i == length(patnum)
     legend('Avg: 10s, Corr: 40 samp', 'Avg: 10s, Corr: 30 samp', 'Avg 5s, Corr: 40 samp', 'Avg 15s, Cor: 30 samp', 'Avg 6s, Cor: 40 samp')
-    %end
+    end
     title(num2str(i))
     
-    %Calculate the empirical estimator bias for all hyperparameters
-    if 1 
-        for it = 1:30
-            for j = 2:65
-                deviation_from_av_all(patdata,it,j,1:length(all_av)) = (squeeze(PRx_all(it,j,:)) - all_av);
-            end
+    %Calculate the empirical error over time for all hyperparameters
+    %interpolate each hyperparameter pair
+        time = (squeeze(out.time(patdata).data(5, 40, :)));
+    time = time(~isnan(time));
+    for ik = 1:30
+        for j = 2:65
+            time_hyper = squeeze(out.time(patdata).data(ik,j,:));
+            prx_hyper = squeeze(out.PRx(patdata).data(ik,j,:));
+            prx_hyper = prx_hyper(~isnan(time_hyper));
+            time_hyper = time_hyper(~isnan(prx_hyper));
+            prx_hyper = prx_hyper(~isnan(prx_hyper));
+            %to interpolate, we can only interpolate times between min and
+            %max reference time: 
+            interp_indx = find(time_hyper > min(time) & time_hyper<max(time));
+            %and they have to be unique...
+            time_hyper = time_hyper(interp_indx);
+            prx_hyper = prx_hyper(interp_indx);
+
+            [time_hyper_unique, unique_indx] = unique(time_hyper);
+            PRx_all(ik,j,:) = interp1(time_hyper_unique, prx_hyper(unique_indx), time);
         end
     end
-        clear PRx_all
 
 
+    all_av = squeeze(mean(mean([PRx_all(5:20, 20:50, :)], 1),2)); %average over a small range of feasible hyperparameters
+
+    % Calculate empirical estimator bias
+        empiricalerror_time(patdata,1:length(time),:) = [(squeeze(PRx_all(10,40,:)) - all_av), (squeeze(PRx_all(10,30,:)) - all_av), ...
+        (squeeze(PRx_all(5,40,:)) - all_av), (squeeze(PRx_all(15,30,:)) - all_av), (squeeze(PRx_all(6,40,:)) - all_av)];
+    clear PRx_all
     end %finished itterating through patients
 
-        total_uncertainty = squeeze(std(deviation_from_av_all, [], 1,'omitnan'));
-
+    empiricalerror_time(empiricalerror_time == 0) = NaN; %empirical error is equal to zeros if the length of the array is larger than timeseries - set to NaN
+    
+    %calculate uncertainty over patients
+    total_uncertainty = squeeze(std(empiricalerror_time, [], 1,'omitnan'));
 
     %Makes figure 5 - contourplots are done in Prism
-    Uncertainty_in_common_estimators = table(squeeze(total_uncertainty(10,40,:)), ...
-        squeeze(total_uncertainty(10,30,:)), squeeze(total_uncertainty(5,40,:)), ...
-        squeeze(total_uncertainty(15,30,:)), squeeze(total_uncertainty(6,40,:)), 'VariableNames',...
-        ["Avg: 10s, Corr: 40 samp", "Avg: 10s, Corr: 30 samp", ...
-        "Avg 5s, Corr: 40 samp", "Avg 15s, Cor: 30 samp", "Avg 6s, Cor: 40 samp"])
-    %writetable(Uncertainty_in_common_estimators, '/data/brain/tmp_jenny/PRxError/Results/NewDataHR_Uncertainty_in_common_estimators.csv')
-    %writematrix(squeeze(mean(total_uncertainty,3,'omitnan')), '/data/brain/tmp_jenny/PRxError/Results/NewDataHR_STD_all.csv')
-    uncertainty_mean = squeeze(mean(total_uncertainty,3,'omitnan'));
+%     Uncertainty_in_common_estimators = table(squeeze(total_uncertainty(10,40,:)), ...
+%         squeeze(total_uncertainty(10,30,:)), squeeze(total_uncertainty(5,40,:)), ...
+%         squeeze(total_uncertainty(15,30,:)), squeeze(total_uncertainty(6,40,:)), 'VariableNames',...
+%         ["Avg: 10s, Corr: 40 samp", "Avg: 10s, Corr: 30 samp", ...
+%         "Avg 5s, Corr: 40 samp", "Avg 15s, Cor: 30 samp", "Avg 6s, Cor: 40 samp"])
+writematrix(total_uncertainty, '/data/brain/tmp_jenny/PRxError/Results/Standard_Uncertainty_in_common_estimators.csv')
+%writematrix(squeeze(mean(total_uncertainty,3,'omitnan')), '/data/brain/tmp_jenny/PRxError/Results/NewDataHR_STD_all.csv')
+   % uncertainty_mean = squeeze(mean(total_uncertainty,3,'omitnan'));
 
-    total_bias = mean(squeeze(mean(deviation_from_av_all, 1, 'omitnan')),3, 'omitnan');
+%     total_bias = mean(squeeze(mean(deviation_from_av_all, 1, 'omitnan')),3, 'omitnan');
    % writematrix(total_bias, '/data/brain/tmp_jenny/PRxError/Results/HRMean_all.csv')
 
-    %find optimal
-    optimal_uncertainty = (uncertainty_mean < 0.02);
-  %  writematrix(optimal_uncertainty, '/data/brain/tmp_jenny/PRxError/Results/HRSTD_all_bin.csv')
-
-    optimal_bias = (abs(total_bias) < 0.001);
-   % writematrix(optimal_bias, '/data/brain/tmp_jenny/PRxError/Results/HRMean_all_bin.csv')
-
-
-
-    
-%code in Universal code path
-if 1
-    figure
-    violinplot(deviation_from_av, {'Avg: 10s, Corr: 40 samp', 'Avg: 10s, Corr: 30 samp', ...
-        'Avg 5s, Corr: 40 samp', 'Avg 15s, Cor: 30 samp', 'Avg 6s, Cor: 40 samp'}, 'ViolinColor',c)
-    set(gca, 'color','none')
-    set(gca, 'box', 'off')
-    set(gca, 'FontSize', 13)
-    ylabel('Empirical Error')
-end
-    %writematrix(deviation_from_av, '/data/brain/tmp_jenny/PRxError/Results/AvEmpiricalError.csv')
 
 end
