@@ -49,45 +49,77 @@ for k = 1:length(HRestimation.filename)
     percchange_all_hr(k) = mean(abs(percchange));
 end
 
-percchangecomparison = mean([percchange_all_hr(1:21); percchange_all_s]')
+percchangecomparison = mean([percchange_all_s; percchange_all_hr(1:21)]')
 
 %calculate empirical estimator bias: 
 [empiricalerror_HR, empiricalerror_S] = EmpiricalError_HR(HRestimation, Standardestimation)
 
 %Standard 30
-[~,indx] = max(abs(empiricalerror_S(:,2)))
+[~,indx] = max(abs(empiricalerror_S(:,2)));
 empiricalerror_S(indx,2)
 std(empiricalerror_S(:,2))
 mean(empiricalerror_S(:,2))
 
 %Standard 40
-[~,indx] = max(abs(empiricalerror_S(:,1)))
+[~,indx] = max(abs(empiricalerror_S(:,1)));
 empiricalerror_S(indx,1)
 std(empiricalerror_S(:,1))
 mean(empiricalerror_S(:,1))
 
 %HR 30
-[~,indx] = max(abs(empiricalerror_HR(:,2)))
+[~,indx] = max(abs(empiricalerror_HR(:,2)));
 empiricalerror_HR(indx,2)
 std(empiricalerror_HR(:,2))
 mean(empiricalerror_HR(:,2))
 
 %HR 40 samp
-[~,indx] = max(abs(empiricalerror_HR(:,1)))
+[~,indx] = max(abs(empiricalerror_HR(:,1)));
 empiricalerror_HR(indx,1)
 std(empiricalerror_HR(:,1))
 mean(empiricalerror_HR(:,1))
 
+%All common hyperparams
+[~,indx] = max(abs(empiricalerror_HR),[], 'all');
+[~,indxS] = max(abs(empiricalerror_S),[],'all');
+[empiricalerror_S(indxS), empiricalerror_HR(indx)]
+mean([(std(empiricalerror_S, [], 1))', (std(empiricalerror_HR, [], 1))'])
+[mean2(empiricalerror_S), mean2(empiricalerror_HR)]
+
 
 %ST of PRx over time: 
-for i = 1:21
+for i = 1:length(Standardestimation.filename)
+    PRx = HRestimation.PRx(i).data(10,40,:);
+    PRx(PRx == 0) = NaN;
+    ST_HR(i,1) = std(PRx,[],'omitnan')
     PRx = HRestimation.PRx(i).data(10,30,:);
     PRx(PRx == 0) = NaN;
-    ST_HR(i) = std(PRx,[],'omitnan')
+    ST_HR(i,2) = std(PRx,[],'omitnan')
+    PRx = HRestimation.PRx(i).data(5,40,:);
+    PRx(PRx == 0) = NaN;
+    ST_HR(i,3) = std(PRx,[],'omitnan')
+    PRx = HRestimation.PRx(i).data(15,30,:);
+    PRx(PRx == 0) = NaN;
+    ST_HR(i,4) = std(PRx,[],'omitnan')
+    PRx = HRestimation.PRx(i).data(6,40,:);
+    PRx(PRx == 0) = NaN;
+    ST_HR(i,5) = std(PRx,[],'omitnan')
 
+
+    PRx = Standardestimation.PRx(i).data(10,40,:);
+    PRx(PRx == 0) = NaN;
+    ST_s(i,1) = std(PRx,[],'omitnan')
     PRx = Standardestimation.PRx(i).data(10,30,:);
     PRx(PRx == 0) = NaN;
-    ST_s(i) = std(PRx,[],'omitnan')
+    ST_s(i,2) = std(PRx,[],'omitnan')
+    PRx = Standardestimation.PRx(i).data(5,40,:);
+    PRx(PRx == 0) = NaN;
+    ST_s(i,3) = std(PRx,[],'omitnan')
+    PRx = Standardestimation.PRx(i).data(15,30,:);
+    PRx(PRx == 0) = NaN;
+    ST_s(i,4) = std(PRx,[],'omitnan')
+    PRx = Standardestimation.PRx(i).data(6,40,:);
+    PRx(PRx == 0) = NaN;
+    ST_s(i,5) = std(PRx,[],'omitnan')
 
     Range_common_HR(i) = range([(HRestimation.quantiles(i).data(10,40,3)), (HRestimation.quantiles(i).data(10,30,3)), ...
     (HRestimation.quantiles(i).data(5,40,3)), (HRestimation.quantiles(i).data(15,30,3)),(HRestimation.quantiles(i).data(6,30,3))])
@@ -97,6 +129,11 @@ for i = 1:21
     
 end
 
+[mean(Range_common_S), mean(Range_common_HR)]
+
+[mean2(ST_s), mean2(ST_HR)]
+
+[mean(ST_s'); mean(ST_HR')]'
 %% Synthetic Data:
 HR_synthetic = [mean([std(HR_intact(:,10,40)); std(HR_impaired(:,10,40)); std(HR_absent(:,10,40))])
 mean([std(HR_intact(:,10,30)); std(HR_impaired(:,10,30)); std(HR_absent(:,10,30))])

@@ -54,7 +54,6 @@ for i = 1:length(patnum)
     
     all_av = squeeze(mean(mean([PRx_all(5:20, 20:50, :)], 1),2)); %average over a small range of feasible hyperparameters
 
-    %all_av = squeeze(mean(mean(PRx_all([10,10,5,15,6], [40,30,40,30,30],:), 1),2)); %average over a small range of feasible hyperparameters
     %interpolate for HR method
 
     %interpolate each hyperparameter pair
@@ -79,7 +78,6 @@ for i = 1:length(patnum)
 
     all_av_HR = squeeze(mean(mean([PRx_all_HR(5:20, 20:50, :)], 1),2)); %average over a small range of feasible hyperparameters
 
-    %all_av_HR = squeeze(mean(mean(PRx_all_HR([10,10,5,15,6], [40,30,40,30,30],:), 1),2)); %average over a small range of feasible hyperparameters
     
 
 
