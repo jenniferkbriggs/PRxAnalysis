@@ -1,4 +1,4 @@
-function [empiricalerror_HR, empiricalerror_S] = EmpiricalError_HR(HR, Standard, patnum)
+function [empiricalerror_HR, empiricalerror_S, empiricalerror_HR_time, empiricalerror_S_time] = EmpiricalError_HR(HR, Standard, patnum)
 % Calculate Empirical Error - figures 3a,b, 4g,h, 5 a,b,c,d
 
 addpath('home/jenniferb/Git/UniversalCode/')
@@ -50,6 +50,7 @@ for i = 1:length(patnum)
         end
     end
 
+    PRx_all(find(PRx_all == 0)) = NaN;
 
     
     all_av = squeeze(mean(mean([PRx_all(5:20, 20:50, :)], 1),2)); %average over a small range of feasible hyperparameters
@@ -75,11 +76,11 @@ for i = 1:length(patnum)
             PRx_all_HR(ik,j,:) = interp1(time_hyper_unique, prx_hyper(unique_indx), time);
         end
     end
-
+    PRx_all_HR(find(PRx_all_HR == 0)) = NaN;
     all_av_HR = squeeze(mean(mean([PRx_all_HR(5:20, 20:50, :)], 1),2)); %average over a small range of feasible hyperparameters
 
     
-
+   
 
     % Calculate empirical estimator bias
     empiricalerror_S(patdata,:) = [mean(squeeze(PRx_all(10,40,:)) - all_av, 'omitnan'), mean(squeeze(PRx_all(10,30,:)) - all_av, 'omitnan'), ...
@@ -88,6 +89,14 @@ for i = 1:length(patnum)
     empiricalerror_HR(patdata,:) = [mean(squeeze(PRx_all_HR(10,40,:)) - all_av_HR, 'omitnan'), mean(squeeze(PRx_all_HR(10,30,:)) - all_av_HR, 'omitnan'), ...
     mean(squeeze(PRx_all_HR(5,40,:)) - all_av_HR, 'omitnan'), mean(squeeze(PRx_all_HR(15,30,:)) - all_av_HR, 'omitnan'), mean(squeeze(PRx_all_HR(6,40,:)) - all_av_HR, 'omitnan')]
     
+    empiricalerror_S_time(patdata,1:length(all_av),:) = [(squeeze(PRx_all(10,40,:)) - all_av), (squeeze(PRx_all(10,30,:)) - all_av), ...
+    (squeeze(PRx_all(5,40,:)) - all_av), (squeeze(PRx_all(15,30,:)) - all_av), (squeeze(PRx_all(6,40,:)) - all_av)];
+    empiricalerror_S_time(empiricalerror_S_time == 0) = NaN;
+
+     empiricalerror_HR_time(patdata,1:length(all_av),:) = [(squeeze(PRx_all_HR(10,40,:)) - all_av_HR), (squeeze(PRx_all_HR(10,30,:)) - all_av_HR), ...
+    (squeeze(PRx_all_HR(5,40,:)) - all_av_HR), (squeeze(PRx_all_HR(15,30,:)) - all_av_HR), (squeeze(PRx_all(6,40,:)) - all_av_HR)];
+        empiricalerror_HR_time(empiricalerror_HR_time == 0) = NaN;
+
     clear PRx_all PRx_all_HR
 end
     figure, nexttile

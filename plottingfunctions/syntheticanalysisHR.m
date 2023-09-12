@@ -8,7 +8,7 @@ clear all
 close all
 clc
 
-cd('/data/brain/tmp_jenny/PRxError/Results/10.19.2022_syntheticdata_fasterfreq/')
+%cd('/data/brain/tmp_jenny/PRxError/Results/NewPatientsValidation_Sept12023/SimulatedPatients_Standard/Standard')
 %load and plot data from PRxValidation
 try
     addpath('~/Git/UniversalCode/')
@@ -16,7 +16,7 @@ catch
 
     addpath('~/Documents/GitHub/UniversalCode/')
 end
-files = dir('10*.mat')
+files = dir('bs*.mat') %load HR and synthetic data separately
 
 min_absent=[]
 min_impaired=[]
@@ -24,7 +24,7 @@ min_intact = []
 for i = 1:length(files)
     disp(i)
     load(files(i).name)
-    if 0
+    if 0 %change when loading HR data
         time_absent = time_absent_HR;
         time_impaired = time_impaired_HR;
         time_intact = time_intact_HR;
@@ -45,18 +45,22 @@ for i = 1:length(files)
 
 
     
-    %calculate error
+    %calculate error (median - not in paper)
     Error_intact = (Q_intact - 0);
     Error_impaired = (Q_impaired - 0.44);
     Error_absent = (Q_absent - 0.97);
     Err_intact_all(i,:,:) = Error_intact(:,:,3);
     Err_impaired_all(i,:,:) = Error_impaired(:,:,3);
     Err_absent_all(i,:,:) = Error_absent(:,:,3);
-    
-    %calculate Bias for figure 5
+
+
+
+    %Noise:
     STD_intact(i,:,:) = std(PRx_intact, [], 3, 'omitnan');
     STD_intact(i,:,:) = std(PRx_intact, [], 3, 'omitnan');
     STD_intact(i,:,:) = std(PRx_intact, [], 3, 'omitnan');
+
+        %calculate error as in paper methods: 
 
     if 1 
         for k = 1:30
@@ -67,10 +71,18 @@ for i = 1:length(files)
             end
         end
     end 
-    total_bias = squeeze(mean(deviation_from_true(:,:,:),1,'omitnan'));
-    uncertainty_mean = squeeze(std(deviation_from_true(:,:,:),[],1,'omitnan'));
+end
+    averageerror = squeeze(mean(deviation_from_true(:,:,:),1,'omitnan'));
 
-    %find optimal
+    average_error_final = [averageerror(10,40), averageerror(10,30), ...
+        averageerror(5,40), averageerror(15, 30), averageerror(6,40)]
+
+    standarddeviation_oferror_final = [std(deviation_from_true(:,10,40),1, 'omitnan'),...
+        std(deviation_from_true(:,10,30),1, 'omitnan'),std(deviation_from_true(:,5,40),1, 'omitnan'),...
+        std(deviation_from_true(:,15,30),1, 'omitnan'),std(deviation_from_true(:,6,40),1, 'omitnan')]
+
+if 0 %not used in paper: 
+  %  find optimal
     optimal_uncertainty = (uncertainty_mean < 0.22);
     writematrix(optimal_uncertainty, '/data/brain/tmp_jenny/PRxError/Results/synthetic_STD_all_bin.csv')
 
@@ -82,18 +94,18 @@ for i = 1:length(files)
     writematrix(squeeze(mean(deviation_from_true(:,:,:),1,'omitnan')),'/data/brain/tmp_jenny/PRxError/Results/synthetic_Mean_all.csv')
     writematrix(squeeze(std(deviation_from_true(:,:,:),[],1,'omitnan')),'/data/brain/tmp_jenny/PRxError/Results/synthetic_STD_all.csv')
 
-%     % minimize error and std: 
-%     costfunc_intact = (abs(Error_intact(:,:,3)).*(std(PRx_intact, [], 3, 'omitnan'))).^2;
-%     costfunc_impaired = (abs(Error_impaired(:,:,3)).*(std(PRx_impaired, [], 3, 'omitnan'))).^2;
-%     costfunc_absent = (abs(Error_absent(:,:,3)).*(std(PRx_absent, [], 3, 'omitnan'))).^2;
-% 
-%     HR_all(i) = HR;
-%     
-    %Cmap = jet(30*65);
-    %stdev_intact = reshape(std(PRx_intact, [], 3, 'omitnan'),1,[]);
-    %[~,Cmapsort] = sort(stdev_intact);
-    %Colortrip= Cmap(Cmapsort,:);
-%     
+    % minimize error and std: 
+    costfunc_intact = (abs(Error_intact(:,:,3)).*(std(PRx_intact, [], 3, 'omitnan'))).^2;
+    costfunc_impaired = (abs(Error_impaired(:,:,3)).*(std(PRx_impaired, [], 3, 'omitnan'))).^2;
+    costfunc_absent = (abs(Error_absent(:,:,3)).*(std(PRx_absent, [], 3, 'omitnan'))).^2;
+
+    HR_all(i) = HR;
+    
+    Cmap = jet(30*65);
+    stdev_intact = reshape(std(PRx_intact, [], 3, 'omitnan'),1,[]);
+    [~,Cmapsort] = sort(stdev_intact);
+    Colortrip= Cmap(Cmapsort,:);
+    
 
 if 0%i == 1
     figure, nexttile
@@ -152,10 +164,10 @@ end
 %     [r, c] = find(costfunc_intact <= cutoff)
 %     min_intact = [min_intact; ones(length(r),1).*HR, r, c];
 %     
-end
+
 
 %% 
-if 1
+if 0
 %%---- Optimize #2 Model averaging ---- 
 Error_av_intact = mean([Err_intact_all(:,6,60), Err_intact_all(:,10,30), Err_intact_all(:,5, 40), Err_intact_all(:,15,30)],2)
 Error_av_impaired = mean([Err_impaired_all(:,6,60), Err_impaired_all(:,10,30), Err_impaired_all(:,5, 40), Err_impaired_all(:,15,30)],2)
@@ -385,6 +397,6 @@ hold on, scatter([60,30,40,30],[6,10,5,15],'black', 'filled')
 text(min(15),mean([6,10,5]),'Common choices for PRx calculation')
 
 
-
+end
 
 %saveas(gcf, ['/data/brain/tmp_jenny/PRxError/Results/07.19.2022_syntheticdata/Q0.5Errorimpaired_' heartrateperiod(bs) '.fig'])

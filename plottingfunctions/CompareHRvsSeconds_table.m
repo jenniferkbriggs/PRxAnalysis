@@ -52,24 +52,29 @@ end
 percchangecomparison = mean([percchange_all_s; percchange_all_hr(1:21)]')
 
 %calculate empirical estimator bias: 
-[empiricalerror_HR, empiricalerror_S] = EmpiricalError_HR(HRestimation, Standardestimation)
+ [empiricalerror_HR, empiricalerror_S, empiricalerror_HR_time, empiricalerror_S_time] = EmpiricalError_HR(HRestimation, Standardestimation)
+
+%STD of empirical error: 
+st_ee = [std(empiricalerror_S)', std(empiricalerror_HR)']%only 40,10
+st_ee(1,:)
+%only 30,10
+st_ee(2,:)
+%all
+mean(st_ee)
 
 %Standard 30
 [~,indx] = max(abs(empiricalerror_S(:,2)));
 empiricalerror_S(indx,2)
-std(empiricalerror_S(:,2))
 mean(empiricalerror_S(:,2))
 
 %Standard 40
 [~,indx] = max(abs(empiricalerror_S(:,1)));
 empiricalerror_S(indx,1)
-std(empiricalerror_S(:,1))
 mean(empiricalerror_S(:,1))
 
 %HR 30
 [~,indx] = max(abs(empiricalerror_HR(:,2)));
 empiricalerror_HR(indx,2)
-std(empiricalerror_HR(:,2))
 mean(empiricalerror_HR(:,2))
 
 %HR 40 samp
@@ -81,8 +86,9 @@ mean(empiricalerror_HR(:,1))
 %All common hyperparams
 [~,indx] = max(abs(empiricalerror_HR),[], 'all');
 [~,indxS] = max(abs(empiricalerror_S),[],'all');
+%max empirical error:
 [empiricalerror_S(indxS), empiricalerror_HR(indx)]
-mean([(std(empiricalerror_S, [], 1))', (std(empiricalerror_HR, [], 1))'])
+%average empirical error:
 [mean2(empiricalerror_S), mean2(empiricalerror_HR)]
 
 
@@ -131,6 +137,7 @@ end
 
 [mean(Range_common_S), mean(Range_common_HR)]
 
+%Standard Deviation of PRx over time (noise)
 [mean2(ST_s), mean2(ST_HR)]
 
 [mean(ST_s'); mean(ST_HR')]'
